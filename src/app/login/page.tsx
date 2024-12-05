@@ -11,27 +11,25 @@ const LoginPage = () => {
   const onFinish = async (values: { email: string; password: string }) => {
     try {
       setLoading(true);
-      const { session } = await authApi.login(values);
-      console.log("session", session);
-      // message.success("登录成功");
+      await authApi.login(values);
       router.push("/dashboard");
     } catch (error) {
-      console.log("登录error", error);
-      // message.error("登录失败");
+      console.error("登录error", error);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center">
-      <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md">
-        <h1 className="text-2xl font-bold text-center">登录</h1>
+    <div className="flex min-h-screen items-center justify-center p-4">
+      <div className="w-full max-w-md space-y-6 bg-white rounded-lg shadow-md p-6 md:p-8">
+        <h1 className="text-xl md:text-2xl font-bold text-center">登录</h1>
         <Form
           name="login"
           onFinish={onFinish}
           autoComplete="off"
           layout="vertical"
+          className="space-y-4"
         >
           <Form.Item
             label="邮箱"
@@ -41,7 +39,7 @@ const LoginPage = () => {
               { type: "email", message: "请输入有效的邮箱地址" },
             ]}
           >
-            <Input />
+            <Input size="large" />
           </Form.Item>
 
           <Form.Item
@@ -49,14 +47,15 @@ const LoginPage = () => {
             name="password"
             rules={[{ required: true, message: "请输入密码" }]}
           >
-            <Input.Password />
+            <Input.Password size="large" />
           </Form.Item>
 
-          <Form.Item>
+          <Form.Item className="mb-0">
             <Button
               type="primary"
               htmlType="submit"
               loading={loading}
+              size="large"
               className="w-full"
             >
               登录

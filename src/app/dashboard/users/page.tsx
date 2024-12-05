@@ -20,31 +20,38 @@ import {
 import { useEffect, useState } from "react";
 import { storesAPI, usersAPI } from "@/services/api";
 import { UserResponse } from "@/types/globalTypes";
-import { ColumnType } from "antd/es/table";
+import type { ColumnType } from "antd/es/table";
 import React from "react";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 
 const UsersPage = () => {
-  const columns = [
+  const isMobile = useMediaQuery("(max-width: 768px)");
+
+  const columns: ColumnType<UserResponse>[] = [
     {
       title: "手机号",
       dataIndex: "mobile",
       key: "mobile",
+      fixed: isMobile ? false : true,
     },
     {
       title: "用户ID",
       dataIndex: "user_id",
       key: "user_id",
+      responsive: ["md"],
     },
     {
       title: "Token",
       dataIndex: "token",
       key: "token",
       ellipsis: true,
+      responsive: ["lg"],
     },
     {
       title: "预约项目",
       dataIndex: "item_code",
       key: "item_code",
+      responsive: ["md"],
       render: (codes: string) => {
         const codeArray = JSON.parse(codes);
         if (!codeArray || itemOptions.length === 0) {
@@ -60,44 +67,47 @@ const UsersPage = () => {
       title: "省份",
       dataIndex: "province_name",
       key: "province_name",
+      responsive: ["md"],
     },
     {
       title: "城市",
       dataIndex: "city_name",
       key: "city_name",
+      responsive: ["md"],
     },
     {
       title: "到期时间",
       dataIndex: "expire_time",
       key: "expire_time",
+      responsive: ["md"],
     },
     {
       title: "操作",
       key: "action",
-      fixed: "right",
-      width: 300,
+      fixed: isMobile ? false : "right",
+      width: isMobile ? undefined : 300,
       render: (_: React.ReactNode, record: UserResponse) => (
-        <Space>
+        <Space wrap>
           <Button
             type="primary"
             icon={<PlusOutlined />}
             onClick={() => handleReserve(record)}
           >
-            预约
+            {!isMobile && "预约"}
           </Button>
           <Button
             type="primary"
             icon={<RedoOutlined />}
             onClick={() => handleRefreshToken(record)}
           >
-            刷新token
+            {!isMobile && "刷新token"}
           </Button>
           <Button
             danger
             icon={<DeleteOutlined />}
             onClick={() => handleDelete(record)}
           >
-            删除
+            {!isMobile && "删除"}
           </Button>
         </Space>
       ),
@@ -316,7 +326,6 @@ const UsersPage = () => {
 
   const handleDeleteConfirm = async () => {
     if (!currentRecord) return;
-    console.log("currentRecord", currentRecord);
 
     try {
       await usersAPI.deleteUser(currentRecord.mobile);
@@ -351,17 +360,22 @@ const UsersPage = () => {
   }, []);
 
   return (
-    <Card title="预约用户管理">
-      <Space direction="vertical" style={{ width: "100%" }}>
-        <Form form={searchForm} layout="inline" onFinish={handleSearch}>
-          <Form.Item name="phone">
-            <Input placeholder="请输入手机号" style={{ width: 200 }} />
+    <Card title="预约用户管理" className="m-0 md:m-4">
+      <Space direction="vertical" className="w-full">
+        <Form
+          form={searchForm}
+          layout={isMobile ? "vertical" : "inline"}
+          onFinish={handleSearch}
+          className="w-full"
+        >
+          <Form.Item name="phone" className={isMobile ? "mb-2" : ""}>
+            <Input placeholder="请输入手机号" />
           </Form.Item>
-          <Form.Item name="userId">
-            <Input placeholder="请输入用户ID" style={{ width: 200 }} />
+          <Form.Item name="userId" className={isMobile ? "mb-2" : ""}>
+            <Input placeholder="请输入用户ID" />
           </Form.Item>
-          <Form.Item>
-            <Space>
+          <Form.Item className={isMobile ? "mb-2" : ""}>
+            <Space wrap>
               <Button
                 type="primary"
                 icon={<SearchOutlined />}
@@ -380,14 +394,16 @@ const UsersPage = () => {
           </Form.Item>
         </Form>
         <Table
-          loading={loading}
-          columns={columns as ColumnType<UserResponse>[]}
+          columns={columns}
           dataSource={tableData}
-          scroll={{ x: 1500 }}
+          rowKey="id"
+          loading={loading}
+          scroll={{ x: true }}
           pagination={{
             total: total,
             pageSize: 10,
             current: currentPage,
+            size: isMobile ? "small" : "default",
             onChange: (page) => {
               setCurrentPage(page);
               fetchUsers(page, searchForm.getFieldsValue());

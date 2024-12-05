@@ -2,6 +2,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { usersAPI } from "@/services/api";
 import { UserOutlined, BellOutlined, MenuOutlined } from "@ant-design/icons";
 import { useEffect, useState } from "react";
+import { Dropdown, Menu } from "antd";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 
 interface NavbarProps {
   onMenuClick: () => void;
@@ -10,16 +12,15 @@ interface NavbarProps {
 export default function Navbar({ onMenuClick }: NavbarProps) {
   const { user, signOut } = useAuth();
   const [currentTime, setCurrentTime] = useState<string>();
+  const isMobile = useMediaQuery("(max-width: 768px)");
 
   useEffect(() => {
-    // 首先获取服务器时间作为初始时间
     usersAPI.getServerTime().then((res) => {
       let serverTime = new Date(res.data.toString());
       setCurrentTime(serverTime.toLocaleString("zh-CN"));
 
-      // 设置定时器，每秒更新一次时间
       const timer = setInterval(() => {
-        serverTime = new Date(serverTime.getTime() + 1000); // 增加一秒
+        serverTime = new Date(serverTime.getTime() + 1000);
         setCurrentTime(serverTime.toLocaleString("zh-CN"));
       }, 1000);
 
@@ -27,8 +28,16 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
     });
   }, []);
 
+  const userMenu = (
+    <Menu>
+      <Menu.Item key="signout" onClick={signOut}>
+        退出登录
+      </Menu.Item>
+    </Menu>
+  );
+
   return (
-    <div className="flex items-center justify-between text-white">
+    <div className="flex items-center justify-between px-4 h-full text-gray-800">
       <div className="flex items-center">
         <button
           onClick={onMenuClick}
@@ -38,32 +47,31 @@ export default function Navbar({ onMenuClick }: NavbarProps) {
         </button>
       </div>
 
-      <div className="text-center">
-        <span className="text-sm font-medium">{currentTime}</span>
-      </div>
+      {!isMobile && (
+        <div className="text-center">
+          <span className="text-sm font-medium">{currentTime}</span>
+        </div>
+      )}
 
       <div className="flex items-center space-x-4">
-        <button className="p-2 rounded-lg hover:bg-gray-100">
-          <BellOutlined className="text-xl" />
-        </button>
+        {!isMobile && (
+          <button className="p-2 rounded-lg hover:bg-gray-100">
+            <BellOutlined className="text-xl" />
+          </button>
+        )}
 
-        <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-            <UserOutlined />
-          </div>
-          <span className="text-sm font-medium">
-            Admin:
-            {user ? (
-              <button onClick={signOut} className="text-blue-500">
-                Sign Out
-              </button>
-            ) : (
-              <a href="/login" className="text-blue-500">
-                Sign In
-              </a>
+        <Dropdown overlay={userMenu} placement="bottomRight">
+          <div className="flex items-center space-x-3 cursor-pointer">
+            <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
+              <UserOutlined />
+            </div>
+            {!isMobile && (
+              <span className="text-sm font-medium">
+                Admin: {user?.email || ""}
+              </span>
             )}
-          </span>
-        </div>
+          </div>
+        </Dropdown>
       </div>
     </div>
   );

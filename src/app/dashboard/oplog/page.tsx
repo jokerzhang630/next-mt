@@ -5,16 +5,10 @@ import { useEffect, useState } from "react";
 import type { ColumnsType } from "antd/es/table";
 import { OpLogResponse } from "@/types/globalTypes";
 import { usersAPI } from "@/services/api";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 
 export default function OpLogPage() {
-  const [logs, setLogs] = useState<OpLogResponse[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [clearLoading, setClearLoading] = useState(false);
-  const [pagination, setPagination] = useState({
-    current: 1,
-    pageSize: 10,
-    total: 0,
-  });
+  const isMobile = useMediaQuery("(max-width: 768px)");
 
   const columns: ColumnsType<OpLogResponse> = [
     {
@@ -26,6 +20,7 @@ export default function OpLogPage() {
       title: "操作时间",
       dataIndex: "op_time",
       key: "op_time",
+      responsive: ["md"],
     },
     {
       title: "状态",
@@ -37,8 +32,18 @@ export default function OpLogPage() {
       title: "日志内容",
       dataIndex: "log_content",
       key: "log_content",
+      responsive: ["md"],
     },
   ];
+
+  const [logs, setLogs] = useState<OpLogResponse[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [clearLoading, setClearLoading] = useState(false);
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 10,
+    total: 0,
+  });
 
   const fetchLogs = async (page = 1, pageSize = 10) => {
     try {
@@ -71,13 +76,14 @@ export default function OpLogPage() {
   }, []);
 
   return (
-    <div className="p-4">
+    <div className="p-2 md:p-4">
       <div className="mb-4 flex justify-end">
         <Button
           type="primary"
           danger
           onClick={handleClear}
           loading={clearLoading}
+          size={isMobile ? "small" : "middle"}
         >
           清理日志
         </Button>
@@ -87,8 +93,11 @@ export default function OpLogPage() {
         dataSource={logs}
         rowKey="id"
         loading={loading}
+        scroll={{ x: true }}
+        size={isMobile ? "small" : "middle"}
         pagination={{
           ...pagination,
+          size: isMobile ? "small" : "default",
           onChange: (page, pageSize) => fetchLogs(page, pageSize),
         }}
       />
