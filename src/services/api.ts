@@ -70,6 +70,9 @@ export const usersAPI = {
   clearOplogs: () => {
     return api.delete("/oplog");
   },
+  getServerTime: () => {
+    return api.get<{ serverTime: string }>("/time");
+  },
 };
 
 export default api;

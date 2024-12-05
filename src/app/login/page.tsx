@@ -36,7 +36,6 @@ const LoginPage = () => {
           <Form.Item
             label="邮箱"
             name="email"
-            initialValue={"zhangtao5416@icloud.com"}
             rules={[
               { required: true, message: "请输入邮箱" },
               { type: "email", message: "请输入有效的邮箱地址" },
@@ -48,7 +47,6 @@ const LoginPage = () => {
           <Form.Item
             label="密码"
             name="password"
-            initialValue={"qwer123456"}
             rules={[{ required: true, message: "请输入密码" }]}
           >
             <Input.Password />

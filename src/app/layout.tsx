@@ -49,11 +49,9 @@ const AuthChecker = ({ children }: { children: ReactNode }) => {
     if (!loading) {
       if (!user) {
         if (window.location.pathname !== "/login") {
-          console.log("user not found, redirect to login");
           router.push("/login");
         }
       } else if (!window.location.pathname.startsWith("/dashboard")) {
-        console.log("user found, redirect to dashboard");
         router.push("/dashboard");
       }
     }
