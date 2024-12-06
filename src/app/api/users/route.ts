@@ -146,10 +146,22 @@ export async function POST(request: Request) {
     const mtVersion = await getMTVersion();
     const itemResponse = await getItems();
 
-    // 如果 item_code 已经是数组，直接使用；如果是字符串，则解析
-    const itemCodes = Array.isArray(item_code)
-      ? item_code
-      : JSON.parse(item_code);
+    // 处理带转义的 JSON 字符串
+    let itemCodes;
+    try {
+      itemCodes =
+        typeof item_code === "string"
+          ? JSON.parse(item_code.replace(/\\/g, ""))
+          : item_code;
+    } catch (parseError) {
+      console.error("Parse item_code error:", parseError);
+      itemCodes = [];
+    }
+
+    // 确保 itemCodes 是数组
+    if (!Array.isArray(itemCodes)) {
+      itemCodes = [];
+    }
 
     // Prepare the request payload
     itemCodes.map(async (itemCode: string) => {
