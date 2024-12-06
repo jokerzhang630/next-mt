@@ -159,7 +159,7 @@ export async function POST(request: Request) {
 
     const mtVersion = await getMTVersion();
     const itemResponse = await getItems();
-
+    console.log("item_code:", item_code);
     // 处理带转义的 JSON 字符串
     let itemCodes;
     try {
