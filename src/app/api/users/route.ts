@@ -139,7 +139,21 @@ export async function PUT(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
+    // 添加请求体的原始数据日志
+    const rawBody = await request.text();
+    console.log("Raw request body:", rawBody);
+
+    let body;
+    try {
+      body = JSON.parse(rawBody);
+    } catch (parseError) {
+      console.error("Failed to parse request body:", parseError);
+      return NextResponse.json({
+        status: 400,
+        data: { message: "Invalid JSON in request body", code: 400 },
+      });
+    }
+
     const { user_id, ishop_id, item_code, token, device_id, lat, lng, mobile } =
       body;
 
