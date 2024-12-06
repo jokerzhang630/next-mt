@@ -33,7 +33,18 @@ export async function getItems() {
 
   const dayTime = new Date().setHours(0, 0, 0, 0);
   const response = await axios.get(
-    `https://static.moutai519.com.cn/mt-backend/xhr/front/mall/index/session/get/${dayTime}`
+    `https://static.moutai519.com.cn/mt-backend/xhr/front/mall/index/session/get/${dayTime}`,
+    {
+      headers: {
+        "MT-APP-Version": await getMTVersion(),
+        "User-Agent":
+          "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148",
+        "MT-Request-ID": `${Date.now()}${Math.random().toString().slice(-6)}`,
+        Accept: "application/json, text/plain, */*",
+        "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
+        "MT-Device-ID": crypto.randomUUID(),
+      },
+    }
   );
   const items = response.data;
   console.log("items", items);
