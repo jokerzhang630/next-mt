@@ -183,12 +183,6 @@ export async function POST(request: Request) {
         );
         const result = `[预约项目]：${itemCode}[shopId]：${ishop_id}[结果返回]：${response.data.toString()}`;
         insertOplog(mobile, result, 1);
-        if (response.data.code !== 2000) {
-          return NextResponse.json(
-            { error: response.data.message },
-            { status: 400 }
-          );
-        }
       } catch (error) {
         if (error instanceof AxiosError) {
           console.error(
@@ -207,6 +201,7 @@ export async function POST(request: Request) {
       data: { message: "预约成功", code: 1000 },
     });
   } catch (error) {
+    console.error("Error in reservation 2:", error);
     return NextResponse.json({
       status: 500,
       data: { message: "预约失败:" + error, code: 500 },
