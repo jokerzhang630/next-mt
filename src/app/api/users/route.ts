@@ -145,13 +145,8 @@ export async function POST(request: Request) {
       body;
     const mtVersion = await getMTVersion();
     const itemResponse = await getItems();
-
-    // Simplify item_code parsing
-    const itemCodes = Array.isArray(item_code) ? item_code : [];
-    console.log("Processing itemCodes:", itemCodes);
-
     // Create an array to store all reservation promises
-    const reservationPromises = itemCodes.map(async (itemCode: string) => {
+    const reservationPromises = item_code.map(async (itemCode: string) => {
       const requestData = {
         itemInfoList: [{ count: 1, itemId: itemCode }],
         sessionId: itemResponse.data.sessionId,
