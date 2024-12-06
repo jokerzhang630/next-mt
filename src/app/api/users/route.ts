@@ -144,7 +144,9 @@ export async function POST(request: Request) {
     const { user_id, ishop_id, item_code, token, device_id, lat, lng, mobile } =
       body;
     const mtVersion = await getMTVersion();
+    console.log("mtVersion", mtVersion);
     const itemResponse = await getItems();
+    console.log("itemResponse", itemResponse);
     // Create an array to store all reservation promises
     const reservationPromises = item_code.map(async (itemCode: string) => {
       const requestData = {
