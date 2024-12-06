@@ -7,7 +7,7 @@ export interface PageResponse<T> {
 
 export interface UserResponse {
   mobile: string;
-  useuser_Id: string;
+  user_id: string;
   token: string;
   item_code: string;
   province_name: string;
@@ -16,7 +16,8 @@ export interface UserResponse {
   lat: number;
   lng: number;
   address: string;
-  divice_id: string;
+  device_id: string;
+  ishop_id: string;
 }
 
 export interface StoreResponse {

@@ -80,7 +80,16 @@ export const usersAPI = {
   addUser: (data: UserResponse) => {
     return api.put("/users", data);
   },
-  reserveUser: (data: UserResponse) => {
+  reserveUser: (data: {
+    user_id: string;
+    ishop_id: string;
+    item_code: string;
+    token: string;
+    device_id: string;
+    lat: number;
+    lng: number;
+    mobile: string;
+  }) => {
     return api.post("/users", data);
   },
   sendVerificationCode: (phone: string, deviceId: string) => {

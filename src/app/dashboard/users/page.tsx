@@ -293,8 +293,18 @@ const UsersPage = () => {
 
   const handleReserve = async (record: UserResponse) => {
     setReserveLoading(true);
-    // 实现预约逻辑
-    const response = await usersAPI.reserveUser(record);
+    // 实现预约逻辑, 参数只要user_id, ishop_id, item_code, token, device_id, lat, lng, mobile
+    const params = {
+      user_id: record.user_id,
+      ishop_id: record.ishop_id,
+      item_code: record.item_code,
+      token: record.token,
+      device_id: record.device_id,
+      lat: record.lat,
+      lng: record.lng,
+      mobile: record.mobile,
+    };
+    const response = await usersAPI.reserveUser(params);
     if (response.data.code !== 1000) {
       messageApi.error(response.data.message);
     } else {
