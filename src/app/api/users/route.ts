@@ -145,7 +145,7 @@ export async function POST(request: Request) {
 
     let body;
     try {
-      body = JSON.parse(rawBody);
+      body = JSON.parse(rawBody.replace(/\\/g, ""));
     } catch (parseError) {
       console.error("Failed to parse request body:", parseError);
       return NextResponse.json({
