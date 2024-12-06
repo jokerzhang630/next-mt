@@ -1,4 +1,5 @@
 import axios from "axios";
+import { supabase } from "@/services/supabase";
 import type {
   ItemResponse,
   OpLogResponse,
@@ -6,7 +7,8 @@ import type {
   StoreResponse,
   UserResponse,
 } from "@/types/globalTypes";
-// 创建axios实例
+
+// 创建 axios 实例
 const api = axios.create({
   baseURL: "/api",
   timeout: 10000,
@@ -15,10 +17,38 @@ const api = axios.create({
   },
 });
 
+// 创建 Supabase 客户端
+
+// 请求拦截器：添加认证信息
+api.interceptors.request.use(async (config) => {
+  // 对于特殊的公开路由，使用 API_SECRET
+  if (config.url === "/users/reserve") {
+    return config;
+  }
+
+  // 获取当前会话
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  console.log("interceptor session", session);
+
+  if (session?.access_token) {
+    config.headers.Authorization = `Bearer ${session.access_token}`;
+  }
+
+  return config;
+});
+
 // 响应拦截器
 api.interceptors.response.use(
   (response) => response.data,
   (error) => {
+    // 如果是 401 错误，可能需要重新登录
+    if (error.response?.status === 401) {
+      // 可以在这里处理登录过期的逻辑
+      // 例如：重定向到登录页面
+      // window.location.href = "/login";
+    }
     console.error("API请求错误:", error);
     return Promise.reject(error);
   }

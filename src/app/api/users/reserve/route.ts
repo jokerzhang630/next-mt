@@ -1,22 +1,17 @@
-import { CronJob } from "cron";
 import { supabase } from "@/app/api/superbase";
 import axios from "axios";
 import { getMTVersion, getItems, aesEncrypt } from "@/utils/sign";
-import { insertOplog } from "../components/OplogOperate";
+import { insertOplog } from "@/app/components/OplogOperate";
+import { NextResponse } from "next/server";
 
-export function initScheduler() {
-  console.log("定时任务初始化...");
-
-  // 修改 cron 表达式为：每天 9:00-10:00 每分钟执行一次
-  const job = new CronJob("0 * 9 * * *", async () => {
-    const currentHour = new Date().getHours();
-    if (currentHour === 9) {
-      await doUserReserve();
-    }
-  });
-
-  job.start();
-  console.log("定时任务已启动");
+export async function GET() {
+  try {
+    await doUserReserve();
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Cron job failed:", error);
+    return NextResponse.json({ success: false, error }, { status: 500 });
+  }
 }
 
 async function doUserReserve() {
@@ -45,6 +40,8 @@ async function doUserReserve() {
 
       // 遍历商品码执行预约
       for (const itemCode of itemCodes) {
+        console.log("执行预约任务，用户：", user.mobile, "商品码：", itemCode);
+
         const requestData = {
           itemInfoList: [{ count: 1, itemId: itemCode }],
           sessionId: itemResponse.data.sessionId,
