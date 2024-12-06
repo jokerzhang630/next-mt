@@ -141,14 +141,10 @@ export async function POST(request: Request) {
   try {
     // 添加请求体的原始数据日志
     const rawBody = await request.text();
-    const reqBody = rawBody
-      .replace(/，.*$/, "") // Remove trailing Chinese comma and text
-      .replace(/\\/g, "") // Remove backslashes
-      .trim();
-    console.log("Raw request body:", reqBody);
+    console.log("Raw request body:", rawBody);
     let body;
     try {
-      body = JSON.parse(reqBody);
+      body = JSON.parse(rawBody);
     } catch (parseError) {
       console.error("Failed to parse request body:", parseError);
       return NextResponse.json({
