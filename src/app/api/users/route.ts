@@ -139,65 +139,33 @@ export async function PUT(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    // 添加请求体的原始数据日志
-    const rawBody = await request.text();
-    console.log("Raw request body:", rawBody);
-    let body;
-    try {
-      body = JSON.parse(rawBody);
-    } catch (parseError) {
-      console.error("Failed to parse request body:", parseError);
-      return NextResponse.json({
-        status: 400,
-        data: { message: "Invalid JSON in request body", code: 400 },
-      });
-    }
-
+    const body = await request.json();
+    console.log("body", body);
     const { user_id, ishop_id, item_code, token, device_id, lat, lng, mobile } =
       body;
-
     const mtVersion = await getMTVersion();
     const itemResponse = await getItems();
-    console.log("item_code:", item_code);
-    // 处理带转义的 JSON 字符串
-    let itemCodes;
-    try {
-      itemCodes =
-        typeof item_code === "string"
-          ? JSON.parse(item_code.replace(/\\/g, ""))
-          : item_code;
-      console.log("itemCodes:", itemCodes);
-    } catch (parseError) {
-      console.error("Parse item_code error:", parseError);
-      itemCodes = [];
-    }
 
-    // 确保 itemCodes 是数组
-    if (!Array.isArray(itemCodes)) {
-      itemCodes = [];
-    }
+    // Simplify item_code parsing
+    const itemCodes = Array.isArray(item_code) ? item_code : [];
+    console.log("Processing itemCodes:", itemCodes);
 
-    // Prepare the request payload
-    itemCodes.map(async (itemCode: string) => {
+    // Create an array to store all reservation promises
+    const reservationPromises = itemCodes.map(async (itemCode: string) => {
       const requestData = {
-        itemInfoList: [
-          {
-            count: 1,
-            itemId: itemCode,
-          },
-        ],
+        itemInfoList: [{ count: 1, itemId: itemCode }],
         sessionId: itemResponse.data.sessionId,
         userId: user_id.toString(),
         shopId: ishop_id,
       };
 
-      // Encrypt actParam (you'll need to implement AesEncrypt)
       const actParam = aesEncrypt(JSON.stringify(requestData));
-      const realReuestData = { ...requestData, actParam };
+      const realRequestData = { ...requestData, actParam };
+
       try {
         const response = await axios.post(
           "https://app.moutai519.com.cn/xhr/front/mall/reservation/add",
-          realReuestData,
+          realRequestData,
           {
             headers: {
               "MT-Lat": lat,
@@ -212,30 +180,49 @@ export async function POST(request: Request) {
             },
           }
         );
-        const result = `[预约项目]：${itemCode}[shopId]：${ishop_id}[结果返回]：${response.data.toString()}`;
-        insertOplog(mobile, result, 1);
+
+        console.log(`Reservation response for ${itemCode}:`, response.data);
+        const result = `[预约项目]：${itemCode}[shopId]：${ishop_id}[结果返回]：${JSON.stringify(
+          response.data
+        )}`;
+        await insertOplog(mobile, result, 1);
+        return { success: true, itemCode, response: response.data };
       } catch (error) {
-        if (error instanceof AxiosError) {
-          console.error(
-            "Error in reservation 1:",
-            error.response?.data.message
-          );
-          const result = `[预约失败]：${itemCode}[shopId]：${ishop_id}[结果返回]：${error.response?.data.message}`;
-          insertOplog(mobile, result, 0);
-          return;
-        }
+        const errorMessage =
+          error instanceof AxiosError
+            ? error.response?.data?.message || error.message
+            : "Unknown error";
+        console.error(`Error reserving ${itemCode}:`, errorMessage);
+        const result = `[预约失败]：${itemCode}[shopId]：${ishop_id}[结果返回]：${errorMessage}`;
+        await insertOplog(mobile, result, 0);
+        return { success: false, itemCode, error: errorMessage };
       }
     });
 
+    // Wait for all reservations to complete
+    const results = await Promise.all(reservationPromises);
+
+    // Check if any reservations were successful
+    const hasSuccess = results.some((result) => result.success);
+
     return NextResponse.json({
       status: 200,
-      data: { message: "预约成功", code: 1000 },
+      data: {
+        message: hasSuccess ? "部分或全部预约成功" : "所有预约均失败",
+        code: hasSuccess ? 1000 : 500,
+        results,
+      },
     });
   } catch (error) {
-    console.error("Error in reservation 2:", error);
+    console.error("Error in reservation process:", error);
     return NextResponse.json({
       status: 500,
-      data: { message: "预约失败:" + error, code: 500 },
+      data: {
+        message:
+          "预约处理失败:" +
+          (error instanceof Error ? error.message : String(error)),
+        code: 500,
+      },
     });
   }
 }
