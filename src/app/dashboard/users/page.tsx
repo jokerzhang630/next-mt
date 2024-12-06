@@ -326,7 +326,7 @@ const UsersPage = () => {
       setRefreshTokenLoading(true);
       await usersAPI.sendVerificationCode(
         currentRecord.mobile,
-        currentRecord.divice_id
+        currentRecord.device_id
       );
       messageApi.success("验证码发送成功");
       setRefreshTokenCountdown(60);
