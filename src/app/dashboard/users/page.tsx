@@ -297,7 +297,7 @@ const UsersPage = () => {
     const params = {
       user_id: record.user_id,
       ishop_id: record.ishop_id,
-      item_code: record.item_code,
+      item_code: JSON.parse(record.item_code),
       token: record.token,
       device_id: record.device_id,
       lat: record.lat,
