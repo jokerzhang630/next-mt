@@ -32,11 +32,11 @@ export async function getItems() {
   }
 
   const dayTime = new Date().setHours(0, 0, 0, 0);
-  const response = await fetch(
+  const response = await axios.get(
     `https://static.moutai519.com.cn/mt-backend/xhr/front/mall/index/session/get/${dayTime}`
   );
-  const items = await response.json();
-
+  const items = response.data;
+  console.log("items", items);
   cache.set(CACHE_KEY, items);
   return items;
 }

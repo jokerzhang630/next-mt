@@ -155,11 +155,8 @@ export async function POST(request: Request) {
         userId: user_id.toString(),
         shopId: ishop_id,
       };
-      console.log("requestData", requestData);
       const actParam = aesEncrypt(JSON.stringify(requestData));
-      console.log("actParam", actParam);
       const realRequestData = { ...requestData, actParam };
-      console.log("realRequestData", realRequestData);
 
       try {
         const response = await axios.post(
