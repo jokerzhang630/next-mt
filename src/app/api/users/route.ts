@@ -167,6 +167,7 @@ export async function POST(request: Request) {
         typeof item_code === "string"
           ? JSON.parse(item_code.replace(/\\/g, ""))
           : item_code;
+      console.log("itemCodes:", itemCodes);
     } catch (parseError) {
       console.error("Parse item_code error:", parseError);
       itemCodes = [];
