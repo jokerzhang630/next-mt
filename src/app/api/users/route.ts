@@ -7,7 +7,7 @@ import {
   getItems,
   aesEncrypt,
 } from "@/utils/sign";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { insertOplog } from "@/app/components/OplogOperate";
 
 export async function GET(request: Request) {
@@ -190,22 +190,26 @@ export async function POST(request: Request) {
           );
         }
       } catch (error) {
-        console.error("Error in reservation:", error);
-        const result = `[预约失败]：${itemCode}[shopId]：${ishop_id}[结果返回]：${error}`;
-        insertOplog(mobile, result, 0);
-        return NextResponse.json(
-          { error: "Failed to process reservation" },
-          { status: 500 }
-        );
+        if (error instanceof AxiosError) {
+          console.error(
+            "Error in reservation 1:",
+            error.response?.data.message
+          );
+          const result = `[预约失败]：${itemCode}[shopId]：${ishop_id}[结果返回]：${error.response?.data.message}`;
+          insertOplog(mobile, result, 0);
+          return;
+        }
       }
     });
 
-    return NextResponse.json({ message: "预约成功" });
+    return NextResponse.json({
+      status: 200,
+      data: { message: "预约成功", code: 1000 },
+    });
   } catch (error) {
-    console.error("Error in reservation:", JSON.stringify(error));
-    return NextResponse.json(
-      { error: "Failed to process reservation" },
-      { status: 500 }
-    );
+    return NextResponse.json({
+      status: 500,
+      data: { message: "预约失败:" + error, code: 500 },
+    });
   }
 }

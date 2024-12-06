@@ -60,6 +60,7 @@ const StoresPage = () => {
     },
   ];
 
+  const [messageApi, contextHolder] = message.useMessage();
   const [loading, setLoading] = useState(false);
   const [tableData, setTableData] = useState<StoreResponse[]>([]);
   const [total, setTotal] = useState(0);
@@ -90,7 +91,7 @@ const StoresPage = () => {
     setRefreshLoading(true);
     try {
       await storesAPI.refresh();
-      message.success("刷新门店数据成功");
+      messageApi.success("刷新门店数据成功");
       await fetchStores(currentPage, searchKeyword);
     } catch (error) {
       console.error("刷新门店数据失败:", error);
@@ -103,7 +104,7 @@ const StoresPage = () => {
     setRefreshItemLoading(true);
     try {
       await storesAPI.refreshItem();
-      message.success("刷新商品数据成功");
+      messageApi.success("刷新商品数据成功");
     } catch (error) {
       console.error("刷新商品数据失败:", error);
     } finally {
@@ -116,51 +117,54 @@ const StoresPage = () => {
   }, []);
 
   return (
-    <Card title="门店管理">
-      <Space direction="vertical" style={{ width: "100%" }}>
-        <Space>
-          <Search
-            placeholder="请输入搜索关键词"
-            allowClear
-            enterButton={<SearchOutlined />}
-            style={{ width: 300 }}
-            onSearch={(value) => {
-              setSearchKeyword(value);
-              fetchStores(1, value);
+    <>
+      {contextHolder}
+      <Card title="门店管理">
+        <Space direction="vertical" style={{ width: "100%" }}>
+          <Space>
+            <Search
+              placeholder="请输入搜索关键词"
+              allowClear
+              enterButton={<SearchOutlined />}
+              style={{ width: 300 }}
+              onSearch={(value) => {
+                setSearchKeyword(value);
+                fetchStores(1, value);
+              }}
+            />
+            <Button
+              icon={<ReloadOutlined />}
+              loading={refreshLoading}
+              onClick={handleRefresh}
+            >
+              刷新门店
+            </Button>
+            <Button
+              icon={<ReloadOutlined />}
+              loading={refreshItemLoading}
+              onClick={handleRefreshItems}
+            >
+              刷新商品
+            </Button>
+          </Space>
+          <Table
+            loading={loading}
+            columns={columns}
+            dataSource={tableData}
+            scroll={{ x: 1500 }}
+            pagination={{
+              total: total,
+              pageSize: 10,
+              current: currentPage,
+              onChange: (page) => {
+                setCurrentPage(page);
+                fetchStores(page, searchKeyword);
+              },
             }}
           />
-          <Button
-            icon={<ReloadOutlined />}
-            loading={refreshLoading}
-            onClick={handleRefresh}
-          >
-            刷新门店
-          </Button>
-          <Button
-            icon={<ReloadOutlined />}
-            loading={refreshItemLoading}
-            onClick={handleRefreshItems}
-          >
-            刷新商品
-          </Button>
         </Space>
-        <Table
-          loading={loading}
-          columns={columns}
-          dataSource={tableData}
-          scroll={{ x: 1500 }}
-          pagination={{
-            total: total,
-            pageSize: 10,
-            current: currentPage,
-            onChange: (page) => {
-              setCurrentPage(page);
-              fetchStores(page, searchKeyword);
-            },
-          }}
-        />
-      </Space>
-    </Card>
+      </Card>
+    </>
   );
 };
 

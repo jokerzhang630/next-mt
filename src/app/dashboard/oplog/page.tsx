@@ -9,7 +9,7 @@ import { useMediaQuery } from "@/hooks/useMediaQuery";
 
 export default function OpLogPage() {
   const isMobile = useMediaQuery("(max-width: 768px)");
-
+  const [messageApi, contextHolder] = message.useMessage();
   const columns: ColumnsType<OpLogResponse> = [
     {
       title: "手机号",
@@ -64,7 +64,7 @@ export default function OpLogPage() {
     try {
       setClearLoading(true);
       await usersAPI.clearOplogs();
-      message.success("清理成功");
+      messageApi.success("清理成功");
       fetchLogs();
     } finally {
       setClearLoading(false);
@@ -76,31 +76,34 @@ export default function OpLogPage() {
   }, []);
 
   return (
-    <div className="p-2 md:p-4">
-      <div className="mb-4 flex justify-end">
-        <Button
-          type="primary"
-          danger
-          onClick={handleClear}
-          loading={clearLoading}
+    <>
+      {contextHolder}
+      <div className="p-2 md:p-4">
+        <div className="mb-4 flex justify-end">
+          <Button
+            type="primary"
+            danger
+            onClick={handleClear}
+            loading={clearLoading}
+            size={isMobile ? "small" : "middle"}
+          >
+            清理日志
+          </Button>
+        </div>
+        <Table
+          columns={columns}
+          dataSource={logs}
+          rowKey="id"
+          loading={loading}
+          scroll={{ x: true }}
           size={isMobile ? "small" : "middle"}
-        >
-          清理日志
-        </Button>
+          pagination={{
+            ...pagination,
+            size: isMobile ? "small" : "default",
+            onChange: (page, pageSize) => fetchLogs(page, pageSize),
+          }}
+        />
       </div>
-      <Table
-        columns={columns}
-        dataSource={logs}
-        rowKey="id"
-        loading={loading}
-        scroll={{ x: true }}
-        size={isMobile ? "small" : "middle"}
-        pagination={{
-          ...pagination,
-          size: isMobile ? "small" : "default",
-          onChange: (page, pageSize) => fetchLogs(page, pageSize),
-        }}
-      />
-    </div>
+    </>
   );
 }

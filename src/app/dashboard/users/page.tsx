@@ -26,6 +26,9 @@ import { useMediaQuery } from "@/hooks/useMediaQuery";
 
 const UsersPage = () => {
   const isMobile = useMediaQuery("(max-width: 768px)");
+  const [messageApi, contextHolder] = message.useMessage();
+
+  const [reserveLoading, setReserveLoading] = useState(false);
 
   const columns: ColumnType<UserResponse>[] = [
     {
@@ -44,14 +47,26 @@ const UsersPage = () => {
       title: "Token",
       dataIndex: "token",
       key: "token",
-      ellipsis: true,
+      width: 100,
+      ellipsis: {
+        showTitle: true,
+      },
       responsive: ["lg"],
+      onCell: () => ({
+        style: {
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          maxWidth: 100,
+        },
+      }),
     },
     {
       title: "预约项目",
       dataIndex: "item_code",
       key: "item_code",
       responsive: ["md"],
+      width: 400,
       render: (codes: string) => {
         const codeArray = JSON.parse(codes);
         if (!codeArray || itemOptions.length === 0) {
@@ -67,12 +82,14 @@ const UsersPage = () => {
       title: "省份",
       dataIndex: "province_name",
       key: "province_name",
+      width: 200,
       responsive: ["md"],
     },
     {
       title: "城市",
       dataIndex: "city_name",
       key: "city_name",
+      width: 200,
       responsive: ["md"],
     },
     {
@@ -80,6 +97,17 @@ const UsersPage = () => {
       dataIndex: "expire_time",
       key: "expire_time",
       responsive: ["md"],
+      width: 200,
+      render: (time: string) => {
+        if (!time) return "-";
+        return new Date(time)
+          .toLocaleString("zh-CN", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+          })
+          .replace(/\//g, "-");
+      },
     },
     {
       title: "操作",
@@ -91,6 +119,7 @@ const UsersPage = () => {
           <Button
             type="primary"
             icon={<PlusOutlined />}
+            loading={reserveLoading}
             onClick={() => handleReserve(record)}
           >
             {!isMobile && "预约"}
@@ -157,7 +186,7 @@ const UsersPage = () => {
       setTotal(response.total);
     } catch (error) {
       console.error("获取用户数据失败:", error);
-      message.error("获取用户数据失败");
+      messageApi.error("获取用户数据失败");
     } finally {
       setLoading(false);
     }
@@ -182,7 +211,7 @@ const UsersPage = () => {
       setItemOptions(formattedOptions);
     } catch (error) {
       console.error("获取商品数据失败:", error);
-      message.error("获取商品数据失败");
+      messageApi.error("获取商品数据失败");
     }
   };
 
@@ -221,7 +250,7 @@ const UsersPage = () => {
   const handleSendCode = async () => {
     const phone = addForm.getFieldValue("phone");
     if (!phone) {
-      message.error("请输入手机号");
+      messageApi.error("请输入手机号");
       return;
     }
     const deviceId = generateDeviceId();
@@ -229,7 +258,7 @@ const UsersPage = () => {
     try {
       setSendCodeLoading(true);
       await usersAPI.sendVerificationCode(phone, deviceId);
-      message.success("验证码发送成功");
+      messageApi.success("验证码发送成功");
       setCountdown(60);
       const timer = setInterval(() => {
         setCountdown((prev) => {
@@ -242,7 +271,7 @@ const UsersPage = () => {
       }, 1000);
     } catch (error) {
       console.error("发送验证码失败:", error);
-      message.error("发送验证码失败");
+      messageApi.error("发送验证码失败");
     } finally {
       setSendCodeLoading(false);
     }
@@ -254,18 +283,24 @@ const UsersPage = () => {
       console.log("values", values);
 
       await usersAPI.addUser({ ...values, deviceId });
-      message.success("添加成功");
+      messageApi.success("添加成功");
       setIsModalVisible(false);
       fetchUsers(currentPage, searchForm.getFieldsValue());
     } catch (error) {
-      message.error("添加失败:" + error);
+      messageApi.error("添加失败:" + error);
     }
   };
 
   const handleReserve = async (record: UserResponse) => {
+    setReserveLoading(true);
     // 实现预约逻辑
-    await usersAPI.reserveUser(record);
-    message.success("预约成功");
+    const response = await usersAPI.reserveUser(record);
+    if (response.data.code !== 1000) {
+      messageApi.error(response.data.message);
+    } else {
+      messageApi.success("预约成功，查看操作日志");
+    }
+    setReserveLoading(false);
   };
 
   const handleRefreshToken = (record: UserResponse) => {
@@ -283,7 +318,7 @@ const UsersPage = () => {
         currentRecord.mobile,
         currentRecord.divice_id
       );
-      message.success("验证码发送成功");
+      messageApi.success("验证码发送成功");
       setRefreshTokenCountdown(60);
       const timer = setInterval(() => {
         setRefreshTokenCountdown((prev) => {
@@ -296,7 +331,7 @@ const UsersPage = () => {
       }, 1000);
     } catch (error) {
       console.error("发送验证码失败:", error);
-      message.error("发送验证码失败");
+      messageApi.error("发送验证码失败");
     } finally {
       setRefreshTokenLoading(false);
     }
@@ -311,11 +346,11 @@ const UsersPage = () => {
         currentRecord,
         ...verificationCode,
       });
-      message.success("刷新token成功");
+      messageApi.success("刷新token成功");
       setIsRefreshTokenModalVisible(false);
       fetchUsers(currentPage, searchForm.getFieldsValue());
     } catch (error) {
-      message.error("刷新token失败:" + error);
+      messageApi.error("刷新token失败:" + error);
     }
   };
 
@@ -329,11 +364,11 @@ const UsersPage = () => {
 
     try {
       await usersAPI.deleteUser(currentRecord.mobile);
-      message.success("删除成功");
+      messageApi.success("删除成功");
       fetchUsers(currentPage, searchForm.getFieldsValue());
     } catch (error) {
       console.error("删除失败:", error);
-      message.error("删除失败");
+      messageApi.error("删除失败");
     } finally {
       setIsDeleteModalVisible(false);
       setCurrentRecord(null);
@@ -360,174 +395,177 @@ const UsersPage = () => {
   }, []);
 
   return (
-    <Card title="预约用户管理" className="m-0 md:m-4">
-      <Space direction="vertical" className="w-full">
-        <Form
-          form={searchForm}
-          layout={isMobile ? "vertical" : "inline"}
-          onFinish={handleSearch}
-          className="w-full"
-        >
-          <Form.Item name="phone" className={isMobile ? "mb-2" : ""}>
-            <Input placeholder="请输入手机号" />
-          </Form.Item>
-          <Form.Item name="userId" className={isMobile ? "mb-2" : ""}>
-            <Input placeholder="请输入用户ID" />
-          </Form.Item>
-          <Form.Item className={isMobile ? "mb-2" : ""}>
-            <Space wrap>
-              <Button
-                type="primary"
-                icon={<SearchOutlined />}
-                onClick={handleSearch}
-              >
-                搜索
-              </Button>
-              <Button
-                type="primary"
-                icon={<PlusOutlined />}
-                onClick={handleAdd}
-              >
-                新增
-              </Button>
-            </Space>
-          </Form.Item>
-        </Form>
-        <Table
-          columns={columns}
-          dataSource={tableData}
-          rowKey="id"
-          loading={loading}
-          scroll={{ x: true }}
-          pagination={{
-            total: total,
-            pageSize: 10,
-            current: currentPage,
-            size: isMobile ? "small" : "default",
-            onChange: (page) => {
-              setCurrentPage(page);
-              fetchUsers(page, searchForm.getFieldsValue());
-            },
-          }}
-        />
-      </Space>
-      <Modal
-        title="新增用户"
-        open={isModalVisible}
-        onOk={handleAddSubmit}
-        onCancel={() => setIsModalVisible(false)}
-      >
-        <Form form={addForm} layout="vertical">
-          <Form.Item
-            name="pickupStore"
-            label="提货门店"
-            rules={[{ required: true, message: "请选择提货门店" }]}
+    <>
+      {contextHolder}
+      <Card title="预约用户管理" className="m-0 md:m-4">
+        <Space direction="vertical" className="w-full">
+          <Form
+            form={searchForm}
+            layout={isMobile ? "vertical" : "inline"}
+            onFinish={handleSearch}
+            className="w-full"
           >
-            <Select
-              placeholder="请选择提货门店"
-              options={storeOptions}
-              style={{ width: "100%" }}
-              showSearch
-              optionLabelProp="label"
-              filterOption={(inputValue, option) =>
-                (option?.label ?? "")
-                  .toString()
-                  .toLowerCase()
-                  .includes(inputValue.toLowerCase())
-              }
-            />
-          </Form.Item>
-          <Form.Item
-            name="projects"
-            label="预约项目"
-            rules={[{ required: true, message: "请选择预约项目" }]}
-          >
-            <Select
-              mode="multiple"
-              placeholder="请选择预约项目"
-              options={itemOptions}
-              style={{ width: "100%" }}
-              optionLabelProp="label"
-            />
-          </Form.Item>
-          <Form.Item
-            name="phone"
-            label="手机号"
-            rules={[
-              { required: true, message: "请输入手机号" },
-              {
-                pattern: /^1[3-9]\d{9}$/,
-                message: "请输入正确的手机号格式",
+            <Form.Item name="phone" className={isMobile ? "mb-2" : ""}>
+              <Input placeholder="请输入手机号" />
+            </Form.Item>
+            <Form.Item name="userId" className={isMobile ? "mb-2" : ""}>
+              <Input placeholder="请输入用户ID" />
+            </Form.Item>
+            <Form.Item className={isMobile ? "mb-2" : ""}>
+              <Space wrap>
+                <Button
+                  type="primary"
+                  icon={<SearchOutlined />}
+                  onClick={handleSearch}
+                >
+                  搜索
+                </Button>
+                <Button
+                  type="primary"
+                  icon={<PlusOutlined />}
+                  onClick={handleAdd}
+                >
+                  新增
+                </Button>
+              </Space>
+            </Form.Item>
+          </Form>
+          <Table
+            columns={columns}
+            dataSource={tableData}
+            rowKey="id"
+            loading={loading}
+            scroll={{ x: true }}
+            pagination={{
+              total: total,
+              pageSize: 10,
+              current: currentPage,
+              size: isMobile ? "small" : "default",
+              onChange: (page) => {
+                setCurrentPage(page);
+                fetchUsers(page, searchForm.getFieldsValue());
               },
-            ]}
-          >
-            <Input
-              placeholder="请输入手机号"
-              onChange={handlePhoneChange}
-              maxLength={11}
-            />
-          </Form.Item>
-          <Form.Item
-            name="verificationCode"
-            label="验证码"
-            rules={[{ required: true, message: "请输入验证码" }]}
-          >
-            <Space>
-              <Input placeholder="请输入验证码" />
-              <Button
-                disabled={!phoneValue || countdown > 0}
-                loading={sendCodeLoading}
-                onClick={handleSendCode}
-              >
-                {countdown > 0 ? `${countdown}秒后重试` : "发送验证码"}
-              </Button>
-            </Space>
-          </Form.Item>
-        </Form>
-      </Modal>
-      <Modal
-        title="确认删除"
-        open={isDeleteModalVisible}
-        onOk={handleDeleteConfirm}
-        onCancel={() => setIsDeleteModalVisible(false)}
-        okText="确定"
-        cancelText="取消"
-      >
-        <p>确定要删除该用户吗？</p>
-      </Modal>
-      <Modal
-        title="刷新Token"
-        open={isRefreshTokenModalVisible}
-        onOk={handleRefreshTokenSubmit}
-        onCancel={() => setIsRefreshTokenModalVisible(false)}
-        okText="确定"
-        cancelText="取消"
-      >
-        <Form form={refreshTokenForm} layout="vertical">
-          <Form.Item name="phone" label="手机号">
-            <Input disabled />
-          </Form.Item>
-          <Form.Item
-            name="verificationCode"
-            label="验证码"
-            rules={[{ required: true, message: "请输入验证码" }]}
-          >
-            <Space>
-              <Input placeholder="请输入验证码" />
-              <Button
-                disabled={refreshTokenCountdown > 0}
-                loading={refreshTokenLoading}
-                onClick={handleRefreshTokenSendCode}
-              >
-                {refreshTokenCountdown > 0
-                  ? `${refreshTokenCountdown}秒后重试`
-                  : "发送验证码"}
-              </Button>
-            </Space>
-          </Form.Item>
-        </Form>
-      </Modal>
-    </Card>
+            }}
+          />
+        </Space>
+        <Modal
+          title="新增用户"
+          open={isModalVisible}
+          onOk={handleAddSubmit}
+          onCancel={() => setIsModalVisible(false)}
+        >
+          <Form form={addForm} layout="vertical">
+            <Form.Item
+              name="pickupStore"
+              label="提货门店"
+              rules={[{ required: true, message: "请选择提货门店" }]}
+            >
+              <Select
+                placeholder="请选择提货门店"
+                options={storeOptions}
+                style={{ width: "100%" }}
+                showSearch
+                optionLabelProp="label"
+                filterOption={(inputValue, option) =>
+                  (option?.label ?? "")
+                    .toString()
+                    .toLowerCase()
+                    .includes(inputValue.toLowerCase())
+                }
+              />
+            </Form.Item>
+            <Form.Item
+              name="projects"
+              label="预约项目"
+              rules={[{ required: true, message: "请选择预约项目" }]}
+            >
+              <Select
+                mode="multiple"
+                placeholder="请选择预约项目"
+                options={itemOptions}
+                style={{ width: "100%" }}
+                optionLabelProp="label"
+              />
+            </Form.Item>
+            <Form.Item
+              name="phone"
+              label="手机号"
+              rules={[
+                { required: true, message: "请输入手机号" },
+                {
+                  pattern: /^1[3-9]\d{9}$/,
+                  message: "请输入正确的手机号格式",
+                },
+              ]}
+            >
+              <Input
+                placeholder="请输入手机号"
+                onChange={handlePhoneChange}
+                maxLength={11}
+              />
+            </Form.Item>
+            <Form.Item
+              name="verificationCode"
+              label="验证码"
+              rules={[{ required: true, message: "请输入验证码" }]}
+            >
+              <Space>
+                <Input placeholder="请输入验证码" />
+                <Button
+                  disabled={!phoneValue || countdown > 0}
+                  loading={sendCodeLoading}
+                  onClick={handleSendCode}
+                >
+                  {countdown > 0 ? `${countdown}秒后重试` : "发送验证码"}
+                </Button>
+              </Space>
+            </Form.Item>
+          </Form>
+        </Modal>
+        <Modal
+          title="确认删除"
+          open={isDeleteModalVisible}
+          onOk={handleDeleteConfirm}
+          onCancel={() => setIsDeleteModalVisible(false)}
+          okText="确定"
+          cancelText="取消"
+        >
+          <p>确定要删除该用户吗？</p>
+        </Modal>
+        <Modal
+          title="刷新Token"
+          open={isRefreshTokenModalVisible}
+          onOk={handleRefreshTokenSubmit}
+          onCancel={() => setIsRefreshTokenModalVisible(false)}
+          okText="确定"
+          cancelText="取消"
+        >
+          <Form form={refreshTokenForm} layout="vertical">
+            <Form.Item name="phone" label="手机号">
+              <Input disabled />
+            </Form.Item>
+            <Form.Item
+              name="verificationCode"
+              label="验证码"
+              rules={[{ required: true, message: "请输入验证码" }]}
+            >
+              <Space>
+                <Input placeholder="请输入验证码" />
+                <Button
+                  disabled={refreshTokenCountdown > 0}
+                  loading={refreshTokenLoading}
+                  onClick={handleRefreshTokenSendCode}
+                >
+                  {refreshTokenCountdown > 0
+                    ? `${refreshTokenCountdown}秒后重试`
+                    : "发送验证码"}
+                </Button>
+              </Space>
+            </Form.Item>
+          </Form>
+        </Modal>
+      </Card>
+    </>
   );
 };
 

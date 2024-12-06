@@ -1,7 +1,7 @@
 "use client";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
-import { ConfigProvider } from "antd";
+import { App, ConfigProvider } from "antd";
 import { useRouter } from "next/navigation";
 import { ReactNode, useEffect } from "react";
 import "@/styles/globals.css";
@@ -28,10 +28,13 @@ const RootLayout = ({ children }: { children: ReactNode }) => {
                 },
               },
             }}
+            wave={{ disabled: true }}
           >
-            <AuthProvider>
-              <AuthChecker>{children}</AuthChecker>
-            </AuthProvider>
+            <App>
+              <AuthProvider>
+                <AuthChecker>{children}</AuthChecker>
+              </AuthProvider>
+            </App>
           </ConfigProvider>
         </AntdRegistry>
       </body>
