@@ -144,8 +144,13 @@ export async function POST(request: Request) {
       body;
 
     const mtVersion = await getMTVersion();
-    const itemResponse = await getItems(); // You'll need to implement this function
-    const itemCodes = JSON.parse(item_code);
+    const itemResponse = await getItems();
+
+    // 如果 item_code 已经是数组，直接使用；如果是字符串，则解析
+    const itemCodes = Array.isArray(item_code)
+      ? item_code
+      : JSON.parse(item_code);
+
     // Prepare the request payload
     itemCodes.map(async (itemCode: string) => {
       const requestData = {
