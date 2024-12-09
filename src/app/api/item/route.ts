@@ -4,8 +4,20 @@ import axios, { AxiosError } from "axios";
 
 export async function POST() {
   try {
-    const dayTime = new Date().setHours(0, 0, 0, 0);
-    console.log("dayTime", dayTime);
+    // 打印当前时区信息
+    console.log(
+      "Current timezone:",
+      Intl.DateTimeFormat().resolvedOptions().timeZone
+    );
+    console.log("Current offset:", new Date().getTimezoneOffset());
+
+    // 获取东八区（北京时间）的当天零点时间戳
+    const chinaDate = new Date(
+      new Date().toLocaleString("en-US", { timeZone: "Asia/Shanghai" })
+    );
+    const dayTime = chinaDate.setHours(0, 0, 0, 0);
+    console.log("China timezone dayTime:", dayTime);
+
     // 使用 axios 替换 fetch 请求茅台商城API
     const response = await axios.get(
       `https://static.moutai519.com.cn/mt-backend/xhr/front/mall/index/session/get/${dayTime}`
