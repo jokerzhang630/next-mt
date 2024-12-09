@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/app/api/superbase";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 
 export async function POST() {
   try {
@@ -86,7 +86,11 @@ export async function POST() {
       { status: 400 }
     );
   } catch (error) {
-    console.error("更新商品数据失败:", error);
+    if (error instanceof AxiosError) {
+      console.error("更新商品数据失败:", error.response?.data);
+    } else {
+      console.error("更新商品数据失败:", error);
+    }
     return NextResponse.json(
       { success: false, message: "更新商品数据失败" },
       { status: 500 }
