@@ -1,15 +1,16 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/app/api/superbase";
+import axios from "axios";
 
 export async function POST() {
   try {
     const dayTime = new Date().setHours(0, 0, 0, 0);
 
-    // 请求茅台商城API
-    const response = await fetch(
+    // 使用 axios 替换 fetch 请求茅台商城API
+    const response = await axios.get(
       `https://static.moutai519.com.cn/mt-backend/xhr/front/mall/index/session/get/${dayTime}`
     );
-    const jsonData = await response.json();
+    const jsonData = response.data; // axios 自动解析 JSON 响应
 
     if (jsonData.code === 2000) {
       // 获取新的商品编码列表
