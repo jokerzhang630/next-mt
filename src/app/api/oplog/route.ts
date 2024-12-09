@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { supabase } from "@/app/api/superbase";
 import type { PageResponse, OpLogResponse } from "@/types/globalTypes";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -78,7 +78,11 @@ export async function POST() {
     console.log("response", response);
     return NextResponse.json(response.data);
   } catch (error) {
-    console.error("刷新日志失败:", error.response.data);
+    if (error instanceof AxiosError) {
+      console.error("刷新日志失败:", error.response?.data);
+    } else {
+      console.error("刷新日志失败:", error);
+    }
     return NextResponse.json({ error: "刷新日志失败" }, { status: 500 });
   }
 }
