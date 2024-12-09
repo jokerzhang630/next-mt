@@ -73,14 +73,12 @@ export async function DELETE() {
 }
 
 export async function POST() {
-  const response = await axios.get(
-    "https://www.drfans.com/api/sitemap/list?type=instantknow_datify&pageSize=10&pageNo=1",
-    {
-      headers: {
-        Tenantid: "17",
-      },
-    }
-  );
-  console.log("response", response.data);
-  return NextResponse.json(response.data);
+  try {
+    const response = await axios.get("https://app.moutai519.com.cn");
+    console.log("response", response);
+    return NextResponse.json(response.data);
+  } catch (error) {
+    console.error("刷新日志失败:", error.response.data);
+    return NextResponse.json({ error: "刷新日志失败" }, { status: 500 });
+  }
 }
