@@ -70,6 +70,9 @@ export default function OpLogPage() {
       setClearLoading(false);
     }
   };
+  const handlePost = async () => {
+    await usersAPI.postOplog();
+  };
 
   useEffect(() => {
     fetchLogs();
@@ -88,6 +91,13 @@ export default function OpLogPage() {
             size={isMobile ? "small" : "middle"}
           >
             清理日志
+          </Button>
+          <Button
+            type="primary"
+            onClick={handlePost}
+            size={isMobile ? "small" : "middle"}
+          >
+            刷新日志
           </Button>
         </div>
         <Table

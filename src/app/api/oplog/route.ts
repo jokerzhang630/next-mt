@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { supabase } from "@/app/api/superbase";
 import type { PageResponse, OpLogResponse } from "@/types/globalTypes";
+import axios from "axios";
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -69,4 +70,17 @@ export async function DELETE() {
     console.error("清除日志失败:", error);
     return NextResponse.json({ error: "清除日志失败" }, { status: 500 });
   }
+}
+
+export async function POST() {
+  const response = await axios.get(
+    "https://www.drfans.com/api/sitemap/list?type=instantknow_datify&pageSize=10&pageNo=1",
+    {
+      headers: {
+        Tenantid: "17",
+      },
+    }
+  );
+  console.log("response", response.data);
+  return NextResponse.json(response.data);
 }

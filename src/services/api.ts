@@ -109,6 +109,9 @@ export const usersAPI = {
   clearOplogs: () => {
     return api.delete("/oplog");
   },
+  postOplog: () => {
+    return api.post("/oplog");
+  },
   getServerTime: () => {
     return api.get<{ serverTime: string }>("/time");
   },
