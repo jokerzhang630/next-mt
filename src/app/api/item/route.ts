@@ -5,7 +5,7 @@ import axios, { AxiosError } from "axios";
 export async function POST() {
   try {
     const dayTime = new Date().setHours(0, 0, 0, 0);
-
+    console.log("dayTime", dayTime);
     // 使用 axios 替换 fetch 请求茅台商城API
     const response = await axios.get(
       `https://static.moutai519.com.cn/mt-backend/xhr/front/mall/index/session/get/${dayTime}`
