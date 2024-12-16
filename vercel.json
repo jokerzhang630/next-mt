@@ -4,5 +4,8 @@
     "app/api/**/*": {
       "memory": 1024
     }
+  },
+  "env": {
+    "TZ": "Asia/Shanghai"
   }
 }
