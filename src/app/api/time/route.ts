@@ -3,6 +3,7 @@ import dayjs from "@/utils/dayjs";
 
 export async function GET() {
   const formattedDate = dayjs().format("YYYY-MM-DD HH:mm:ss");
+  console.log("formattedDate", formattedDate);
   // 获取服务器时间
   // 使用标准的返回格式
   return NextResponse.json(
