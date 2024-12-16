@@ -2,7 +2,7 @@ import crypto from "crypto";
 import axios from "axios";
 import * as cheerio from "cheerio";
 import NodeCache from "node-cache";
-import dayjs from "dayjs";
+import { getServerDayTimestamp, getServerTimestamp } from "./dayjs";
 
 // Initialize cache with default TTL of 30 minutes
 const cache = new NodeCache({ stdTTL: 1800 });
@@ -32,7 +32,7 @@ export async function getItems() {
     return cachedItems;
   }
   // 获取东八区（北京时间）的当天零点时间戳
-  const dayTime = dayjs().startOf("day").valueOf();
+  const dayTime = getServerDayTimestamp();
   console.log("dayTime", dayTime);
   const response = await axios.get(
     `https://static.moutai519.com.cn/mt-backend/xhr/front/mall/index/session/get/${dayTime}`,
@@ -41,7 +41,9 @@ export async function getItems() {
         "MT-APP-Version": await getMTVersion(),
         "User-Agent":
           "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148",
-        "MT-Request-ID": `${Date.now()}${Math.random().toString().slice(-6)}`,
+        "MT-Request-ID": `${getServerTimestamp()}${Math.random()
+          .toString()
+          .slice(-6)}`,
         Accept: "application/json, text/plain, */*",
         "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
         "MT-Device-ID": crypto.randomUUID(),

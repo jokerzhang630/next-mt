@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/app/api/superbase";
 import axios, { AxiosError } from "axios";
-import dayjs from "dayjs";
+import { getServerDayTimestamp } from "@/utils/dayjs";
 
 export async function POST() {
   try {
     // 打印当前时区信息
 
     // 获取东八区（北京时间）的当天零点时间戳
-    const dayTime = dayjs().startOf("day").valueOf();
+    const dayTime = getServerDayTimestamp();
     console.log("dayTime", dayTime);
     // 使用 axios 替换 fetch 请求茅台商城API
     const response = await axios.get(

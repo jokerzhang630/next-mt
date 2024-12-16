@@ -3,6 +3,7 @@ import axios from "axios";
 import { getMTVersion, getItems, aesEncrypt } from "@/utils/sign";
 import { insertOplog } from "@/app/components/OplogOperate";
 import { NextResponse } from "next/server";
+import { getServerMinute, getServerTime } from "@/utils/dayjs";
 
 export async function GET() {
   try {
@@ -15,10 +16,10 @@ export async function GET() {
 }
 
 async function doUserReserve() {
-  console.log("执行预约任务:", new Date().toLocaleString());
+  console.log("执行预约任务:", getServerTime());
 
   try {
-    const currentMinute = new Date().getMinutes().toString();
+    const currentMinute = getServerMinute();
 
     // 查询未过期的用户，匹配当前分钟数
     const { data: users, error } = await supabase

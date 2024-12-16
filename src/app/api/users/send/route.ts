@@ -3,12 +3,12 @@ import axios from "axios";
 
 import { generateSignature } from "@/utils/sign";
 import { getMTVersion } from "@/utils/sign";
-import dayjs from "dayjs";
+import { getServerTimestamp } from "@/utils/dayjs";
 
 export async function POST(request: Request) {
   try {
     const { phone: mobile, deviceId: providedDeviceId } = await request.json();
-    const timestamp = dayjs().valueOf();
+    const timestamp = getServerTimestamp();
     const deviceId = providedDeviceId;
     const data = {
       mobile,

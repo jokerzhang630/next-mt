@@ -9,7 +9,7 @@ import {
 } from "@/utils/sign";
 import axios, { AxiosError } from "axios";
 import { insertOplog } from "@/app/components/OplogOperate";
-import dayjs from "dayjs";
+import { getServerTimestamp } from "@/utils/dayjs";
 
 export async function GET(request: Request) {
   try {
@@ -58,7 +58,7 @@ export async function PUT(request: Request) {
     const body = await request.json();
     const { phone, verificationCode, deviceId, projects, pickupStore } = body;
 
-    const timestamp = dayjs().valueOf();
+    const timestamp = getServerTimestamp();
     const mtVersion = await getMTVersion();
 
     const verifyResponse = await axios.post(

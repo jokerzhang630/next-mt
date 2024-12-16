@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import dayjs from "@/utils/dayjs";
+import { getServerTime } from "@/utils/dayjs";
 
 export async function GET() {
-  const formattedDate = dayjs().format("YYYY-MM-DD HH:mm:ss");
+  const formattedDate = getServerTime();
   console.log("formattedDate", formattedDate);
   // 获取服务器时间
   // 使用标准的返回格式
