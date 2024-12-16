@@ -7,8 +7,6 @@ import { ReactNode, useEffect } from "react";
 import "@/styles/globals.css";
 import "antd/dist/reset.css";
 
-process.env.TZ = "Asia/Shanghai";
-
 const RootLayout = ({ children }: { children: ReactNode }) => {
   return (
     <html lang="en">
