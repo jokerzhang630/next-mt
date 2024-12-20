@@ -20,16 +20,16 @@ async function doUserReserve() {
 
   try {
     const currentMinute = getServerMinute();
-
+    console.log("执行预约分钟数:", currentMinute);
     // 查询未过期的用户，匹配当前分钟数
     const { data: users, error } = await supabase
       .from("i_user")
       .select("*")
       .eq("random_minute", currentMinute)
-      .gt("expire_time", new Date().toISOString());
+      .gte("expire_time", new Date().toISOString());
 
     if (error) throw error;
-
+    console.log("待执行的用户:", users);
     // 遍历用户执行预约
     for (const user of users) {
       if (!user.item_code) continue;

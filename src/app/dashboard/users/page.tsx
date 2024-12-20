@@ -352,10 +352,9 @@ const UsersPage = () => {
 
     try {
       const verificationCode = await refreshTokenForm.validateFields();
-      await usersAPI.addUser({
-        currentRecord,
-        ...verificationCode,
-      });
+      const params = { ...currentRecord, ...verificationCode };
+      console.log("params", params);
+      await usersAPI.addUser(params);
       messageApi.success("刷新token成功");
       setIsRefreshTokenModalVisible(false);
       fetchUsers(currentPage, searchForm.getFieldsValue());

@@ -56,8 +56,14 @@ export async function GET(request: Request) {
 export async function PUT(request: Request) {
   try {
     const body = await request.json();
-    const { phone, verificationCode, deviceId, projects, pickupStore } = body;
-
+    const {
+      phone,
+      verificationCode,
+      device_id: deviceId,
+      projects,
+      pickupStore,
+    } = body;
+    console.log("deviceId", deviceId);
     const timestamp = getServerTimestamp();
     const mtVersion = await getMTVersion();
 
@@ -81,7 +87,6 @@ export async function PUT(request: Request) {
     );
 
     const verifyData = verifyResponse.data;
-    const pickupStoreData = JSON.parse(pickupStore);
 
     if (verifyData.code === 2000) {
       // 构建基础更新对象
@@ -103,6 +108,7 @@ export async function PUT(request: Request) {
 
       // 仅在 pickupStoreData 存在时添加相关字段
       if (pickupStore) {
+        const pickupStoreData = JSON.parse(pickupStore);
         Object.assign(updateData, {
           shop_id: pickupStoreData.shopId,
           province_name: pickupStoreData.province,
@@ -130,7 +136,11 @@ export async function PUT(request: Request) {
       );
     }
   } catch (error) {
-    console.error("Error in user login:", error);
+    if (error instanceof AxiosError) {
+      console.error("Error in user update:", error.response?.data);
+    } else {
+      console.error("Error in user update:", error);
+    }
     return NextResponse.json(
       { error: "Failed to process login" },
       { status: 500 }
