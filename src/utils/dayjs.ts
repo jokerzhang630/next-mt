@@ -19,6 +19,10 @@ export function getServerMinute() {
   return dayjs().tz(defaultTimezone).minute();
 }
 
+export function getServerHour() {
+  return dayjs().tz(defaultTimezone).hour();
+}
+
 export function getServerTimestamp() {
   return dayjs().tz(defaultTimezone).valueOf();
 }

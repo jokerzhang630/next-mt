@@ -3,13 +3,32 @@ import axios from "axios";
 import { getMTVersion, getItems, aesEncrypt } from "@/utils/sign";
 import { insertOplog } from "@/app/components/OplogOperate";
 import { NextResponse } from "next/server";
-import { getServerMinute, getServerTime } from "@/utils/dayjs";
+import { getServerHour, getServerMinute, getServerTime } from "@/utils/dayjs";
+
+// 添加执行标记
+let isRunning = false;
 
 export async function GET() {
   try {
-    await doUserReserve();
-    return NextResponse.json({ success: true });
+    const hour = getServerHour();
+    // 检查时间是否在9-10点之间，且未在运行中
+    if (hour < 9 || hour >= 10 || isRunning) {
+      return NextResponse.json({ success: true, message: "已执行" });
+    }
+    // 设置运行标记
+    isRunning = true;
+    // 开始循环执行
+    while (getServerHour() < 10) {
+      await doUserReserve();
+      // 等待到下一分钟
+      await new Promise((resolve) => setTimeout(resolve, 60 * 1000));
+    }
+    // 任务结束，关闭标记
+    isRunning = false;
+    return NextResponse.json({ success: true, message: "执行完成" });
   } catch (error) {
+    // 发生错误时也要关闭标记
+    isRunning = false;
     console.error("Cron job failed:", error);
     return NextResponse.json({ success: false, error }, { status: 500 });
   }
